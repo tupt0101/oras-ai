@@ -8,15 +8,23 @@ import re
 re_c = re.compile(r'\w+')
 
 def processJD(raw_jd):
-    stop_words = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"]
-    raw_jd = re.sub(r'[^\w\s]', '', raw_jd)
-    words = raw_jd.split()
-    prc_jd = ""
-    for token in words:
-        if not token in stop_words:
-            prc_jd += " " + token
     
-    return prc_jd
+    # lemmatization
+    lem_str = ''
+    doc = nlp(raw_jd)
+    for token in doc:
+        lem_str += token.lemma_ + ' '
+        
+    list_of_words = re_c.findall(lem_str)
+    list_of_imp_words  = []
+    
+    # modify word
+    for i in range(len(list_of_words)):
+        modified_word = modify(list_of_words[i])
+        if (modified_word):
+            list_of_imp_words.append(modified_word)
+
+    return ' '.join(list_of_imp_words)
 
 def processResume(cv_content):
     
@@ -46,25 +54,6 @@ def processResume(cv_content):
         #     print(section, new_list)
             
         similar_to[section] = new_list
-        
-    # function to remove unnecessary symbols and stopwords 
-    def modify(word):
-        try:
-            symbols = '''~'`!@#$%^&*)(_+-=}{][|\:;",./<>?'''
-            mod_word = ''
-            
-            for char in word:
-                if (char not in symbols):
-                    mod_word += char.lower()
-
-            docx = nlp(mod_word)
-
-            if (len(mod_word) == 0 or docx[0].is_stop):
-                return None
-            else:
-                return docx[0].lemma_
-        except:
-            return None # to handle the odd case of characters like 'x02', etc.
 
     # utility function to skip line when no alphabet present
     def is_empty(line):
@@ -142,3 +131,22 @@ def processResume(cv_content):
 
     data_frame = pd.DataFrame(dict_of_data_series)
     data_frame.to_csv('./data/prc_cv.csv', sep='\t')
+    
+# function to remove unnecessary symbols and stopwords 
+def modify(word):
+    try:
+        symbols = '''~'`!@#$%^&*)(_+-=}{][|\:;",./<>?'''
+        mod_word = ''
+        
+        for char in word:
+            if (char not in symbols):
+                mod_word += char.lower()
+
+        docx = nlp(mod_word)
+
+        if (len(mod_word) == 0 or docx[0].is_stop):
+            return None
+        else:
+            return docx[0].lemma_
+    except:
+        return None # to handle the odd case of characters like 'x02', etc.

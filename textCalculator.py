@@ -20,7 +20,7 @@ def calcSimilar(job_description):
             # print(similar_words[i], word_value[similar_words[i]])
         
     # no_of_cv = 150
-    no_of_cv = 10
+    no_of_cv = 1
 
     count = {}
     idf = {}
