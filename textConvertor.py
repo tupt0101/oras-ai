@@ -2,6 +2,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
+from docx import Document
 from io import StringIO
 
 def convertPDFToText(path):    
@@ -23,3 +24,7 @@ def convertPDFToText(path):
     string = retstr.getvalue()
     retstr.close()
     return string
+
+def convertDocxToText(path):
+    document = Document(path)
+    return '\n'.join([para.text for para in document.paragraphs])

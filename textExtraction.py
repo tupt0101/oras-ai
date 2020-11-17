@@ -1,8 +1,8 @@
 import io
-
-import requests
 import re
+import requests
 from PyPDF2 import PdfFileReader
+from docx import Document
 
 def extractTextFromPDF(url):
     r = requests.get(url)
@@ -16,3 +16,11 @@ def extractTextFromPDF(url):
     result = ''.join(contents)
     # return contents
     return re.split(r'\s{2,}', result)
+
+def extractTextFromDocx(url):
+    r = requests.get(url)
+    f = io.BytesIO(r.content)
+    document = Document(f)
+    result = ' '.join([para.text for para in document.paragraphs])
+    
+    return re.split(r'\s{2,}', result) 
