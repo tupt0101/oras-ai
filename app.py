@@ -1,4 +1,4 @@
-import math, json, string, re
+import math, json
 import pandas as pd
 import numpy as np
 
@@ -8,7 +8,8 @@ from gensim.models import Word2Vec as w2v
 
 from convertDocxToText import convertDocxToText
 from convertPDFToText import convertPDFToText
-from extractFromPDFWebPage import extractTextFromPDF
+from extractFromPdfURL import extractTextFromPDF
+from extractFromDocxURL import extractTextFromDocx
 from processResume import processResume
 from processJD import processJD
 
@@ -38,6 +39,12 @@ def convert_docx():
 def extract_pdf():
     url = request.args.get('url')
     result = extractTextFromPDF(url)
+    return json.dumps(result)
+
+@app.route("/process/extract-docx")
+def extract_docx():
+    url = request.args.get('url')
+    result = extractTextFromDocx(url)
     return json.dumps(result)
 
 # process the raw job description: remove stop words, punctuation
