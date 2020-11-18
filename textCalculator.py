@@ -5,9 +5,9 @@ from gensim.models import Word2Vec as w2v
 # load model to process
 model = w2v.load('./model/stackexchange_model_v2')
 
-def calcSimilar(job_description):
+def calcSimilar(job_description, no_of_cv):
     
-    cvs = pd.read_csv('./data/prc_cv.csv', sep='\t')
+    cvs = pd.read_csv('./data/prc_cvs.csv', sep='\t')
     cvs = cvs.set_index('Unnamed: 0')
     
     word_value = {}
@@ -20,7 +20,6 @@ def calcSimilar(job_description):
             # print(similar_words[i], word_value[similar_words[i]])
         
     # no_of_cv = 150
-    no_of_cv = 1
 
     count = {}
     idf = {}
@@ -52,11 +51,12 @@ def calcSimilar(job_description):
         
     sorted_list.sort(reverse=True)
 
-    # for s, i in sorted_list:
-    #     if list(cvs)[i] != '.DS_Store':
-    #         print(list(cvs)[i], ':', s)
+    result = {}
+    for s, i in sorted_list:
+        if list(cvs)[i] != '.DS_Store':
+            result[list(cvs)[i]] = s
     
-    return sorted_list
+    return result
 
 def get_closest(word, n):
     '''Get n most similar words by words'''
