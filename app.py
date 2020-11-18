@@ -73,9 +73,9 @@ def calc():
             list_cv_content[id] = extractTextFromPDF(apply[id])
     processResume(list_cv_content)
     
-    sorted_list = calcSimilar(job_description, len(list_cv_content))
+    result = calcSimilar(job_description, len(list_cv_content))
     
-    return json.dumps(sorted_list)
+    return json.dumps(result)
 
 if __name__ == '__main__':
     app.run()
