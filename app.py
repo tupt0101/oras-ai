@@ -1,13 +1,64 @@
-import json
+import json, datetime
+import re
 
 from flask import Flask, request
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 from textConvertor import convertPDFToText, convertDocxToText
 from textExtraction import extractTextFromPDF, extractTextFromDocx
 from textProcessor import processJD, processResume
 from textCalculator import calcSimilar
 
+
+POSTGRES = {
+    'user': 'ornphnuodjuqxc',
+    'pw': '027924e9378c409d321d057aaeab4b257031508694d3fc0ce6cad8fddc3d57b0',
+    'db': 'db67ot35cl90oe',
+    'host': 'ec2-54-84-98-18.compute-1.amazonaws.com',
+    'port': '5432'
+}
+
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+# Database model
+class BaseModel(db.Model):
+    """Base data model for all objects"""
+    __abstract__ = True
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    def __repr__(self):
+        """Define a base way to print models"""
+        return '%s(%s)' % (self.__class__.__name__, {
+            column: value
+            for column, value in self._to_dict().items()
+        })
+
+    def json(self):
+        """Define a base way to jsonify models, dealing with datetime objects"""
+        return {
+            column: value if not isinstance(value, datetime.date) else value.strftime('%Y-%m-%d')
+            for column, value in self._to_dict().items()
+        }
+
+class JobApplicationModel(BaseModel, db.Model):
+    __tablename__ = 'job_application'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    apply_date = db.Column(db.DateTime())
+    candidate_id = db.Column(db.Integer())
+    comment = db.Column(db.String())
+    cv = db.Column(db.String())
+    job_id = db.Column(db.String())
+    matching_rate = db.Column(db.Float())
+    source = db.Column(db.String())
+    status = db.Column(db.String())
+    talent_pool_id = db.Column(db.Integer())
 
 # home page
 @app.route("/")
@@ -60,22 +111,42 @@ def prc_cvs():
 @app.route("/calc/similarity")
 def calc():
     
-    data = request.get_json()
-    
-    # process job descripton
-    jd = data['job_desc']
-    job_description = processJD(jd)
-    
-    # process list resume
+    jd = request.form['jd']
+    job_id = request.form['job_id']
+    jas = JobApplicationModel.query.filter(JobApplicationModel.job_id ==job_id)
     list_cv_content = {}
-    for apply in data['list_cv']:
-        for id in apply:
-            list_cv_content[id] = extractTextFromPDF(apply[id])
+    for ja in jas:
+        list_cv_content[ja.id] = extractTextFromPDF(ja.cv)
     processResume(list_cv_content)
     
-    result = calcSimilar(job_description, len(list_cv_content))
+    result = calcSimilar(jd, len(list_cv_content))
     
-    return json.dumps(result)
+    for ja in jas:
+        ja.matching_rate = result[ja.id]
+    db.session.commit()
+    
+    # return json.dumps(result)
+    return {"message": "{len(result)} job applications have been ranked!"}
+
+@app.route("/calc/testDB", methods = ['GET', 'POST'])
+def testDB():
+    if request.method == 'POST':
+        ja_id = request.form['ja_id']
+        edit_ja = JobApplicationModel.query.get(ja_id)
+        edit_ja.matching_rate = 99
+        db.session.commit()
+        
+        return {"message": f"Job application {edit_ja.id} has been updated successfully! Matching rate: {edit_ja.matching_rate}"}
+
+    elif request.method == 'GET':
+        job_id = request.args.get('job_id')
+        # jas = JobApplicationModel.query.all()
+        jas = JobApplicationModel.query.filter(JobApplicationModel.job_id ==job_id)
+        result = {}
+        for ja in jas:
+            result[ja.id] = ja.cv
+            
+        return json.dumps(result)
 
 if __name__ == '__main__':
     app.run()

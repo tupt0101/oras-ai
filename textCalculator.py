@@ -1,4 +1,5 @@
 import math
+from flask.helpers import total_seconds
 import pandas as pd
 from gensim.models import Word2Vec as w2v
 
@@ -12,14 +13,18 @@ def calcSimilar(job_description, no_of_cv):
     
     word_value = {}
     similar_words_needed = 2
+    total_word_value = 0
     for word in job_description.split():
         # get similar word
         similar_words, similarity = get_closest(word, similar_words_needed)
         for i in range(len(similar_words)):
             word_value[similar_words[i]] = word_value.get(similar_words[i], 0)+similarity[i]
+            total_word_value += word_value[similar_words[i]]
             # print(similar_words[i], word_value[similar_words[i]])
-        
-    # no_of_cv = 150
+    
+    print(">>", total_word_value)
+    print(">> ", total_word_value / math.log(no_of_cv))
+    # no_of_cv = 1
 
     count = {}
     idf = {}
