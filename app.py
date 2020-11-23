@@ -1,5 +1,4 @@
 import json, datetime
-import re
 
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
@@ -10,7 +9,7 @@ from textExtraction import extractTextFromPDF, extractTextFromDocx
 from textProcessor import processJD, processResume
 from textCalculator import calcSimilar
 
-
+# database connection configuration
 POSTGRES = {
     'user': 'ornphnuodjuqxc',
     'pw': '027924e9378c409d321d057aaeab4b257031508694d3fc0ce6cad8fddc3d57b0',
@@ -25,6 +24,8 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # Database model
+
+# Base model
 class BaseModel(db.Model):
     """Base data model for all objects"""
     __abstract__ = True
@@ -46,6 +47,7 @@ class BaseModel(db.Model):
             for column, value in self._to_dict().items()
         }
 
+# Model for job_application table
 class JobApplicationModel(BaseModel, db.Model):
     __tablename__ = 'job_application'
 
@@ -65,37 +67,42 @@ class JobApplicationModel(BaseModel, db.Model):
 def main():
     return json.dumps(['message', 'Welcome to ORAS AI!'])
 
+# convert from local pdf to text
 @app.route("/process/convert-pdf")
 def convert_pdf():
     path = './data/1Amy.pdf'
     result = convertPDFToText(path=path)
     return json.dumps(result)
 
+# convert local docx to text
 @app.route("/process/convert-docx")
 def convert_docx():
     path = './data/1Amy.docx'
     result = convertDocxToText(path=path)
     return json.dumps(result)
 
+# extract text content from pdf url
 @app.route("/process/extract-pdf")
 def extract_pdf():
     url = request.args.get('url')
     result = extractTextFromPDF(url)
     return json.dumps(result)
 
+# extract text content from docx url
 @app.route("/process/extract-docx")
 def extract_docx():
     url = request.args.get('url')
     result = extractTextFromDocx(url)
     return json.dumps(result)
 
-# process the raw job description: remove stop words, punctuation
+# process the raw job description: lemma, remove stop words, punctuation
 @app.route("/process/jd")
 def prc_jd():
     raw_jd = request.form['jd']
     result = processJD(raw_jd)
     return json.dumps({"prc_jd": result})
 
+# process list of cvs
 @app.route("/process/cvs", methods = ['POST'])
 def prc_cvs():
     urls = request.get_json()
@@ -107,20 +114,32 @@ def prc_cvs():
     processResume(list_cv_content)
     return json.dumps({'message': 'success'})
 
-# calculate the similarity between document
+# calculate the similarity between cvs and job description
 @app.route("/calc/similarity")
 def calc():
     
-    jd = request.form['jd']
+    # get job id and job description from request
     job_id = request.form['job_id']
-    jas = JobApplicationModel.query.filter(JobApplicationModel.job_id ==job_id)
+    jd = request.form['jd']
+    
+    # get list of job applications from database
+    jas = JobApplicationModel.query.filter(JobApplicationModel.job_id == job_id)
+    
+    # extract cv content from url
     list_cv_content = {}
     for ja in jas:
-        list_cv_content[ja.id] = extractTextFromPDF(ja.cv)
+        tokens = ja.cv.split('.')
+        if (tokens[-1] == 'pdf'):
+            list_cv_content[ja.id] = extractTextFromPDF(ja.cv)
+        elif (tokens[-1] == 'docx'):
+            list_cv_content[ja.id] = extractTextFromDocx(ja.cv)
+
     processResume(list_cv_content)
     
+    # calculate the matching score of cvs
     result = calcSimilar(jd, len(list_cv_content))
     
+    # save the result to database
     for ja in jas:
         ja.matching_rate = result[ja.id]
     db.session.commit()
@@ -128,8 +147,9 @@ def calc():
     # return json.dumps(result)
     return {"message": "{len(result)} job applications have been ranked!"}
 
-@app.route("/calc/testDB", methods = ['GET', 'POST'])
-def testDB():
+# test zone
+@app.route("/test/connect-db", methods = ['GET', 'POST'])
+def connectDB():
     if request.method == 'POST':
         ja_id = request.form['ja_id']
         edit_ja = JobApplicationModel.query.get(ja_id)
@@ -147,6 +167,18 @@ def testDB():
             result[ja.id] = ja.cv
             
         return json.dumps(result)
+    
+@app.route("/test/check-file")
+def checkFile():
+    url = request.args.get('url')
+    token = url.split('.')
+    if (token[-1] == 'pdf'):
+        return {"type": "pdf"}
+    elif (token[-1] == 'docx'):
+        return {"type": "docx"}
+    
+    return {"message": "invalid file type"}
+        
 
 if __name__ == '__main__':
     app.run()
