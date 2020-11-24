@@ -129,19 +129,20 @@ def calc():
     list_cv_content = {}
     for ja in jas:
         tokens = ja.cv.split('.')
+        print(ja.cv)
         if (tokens[-1] == 'pdf'):
             list_cv_content[ja.id] = extractTextFromPDF(ja.cv)
         elif (tokens[-1] == 'docx'):
             list_cv_content[ja.id] = extractTextFromDocx(ja.cv)
-
+    print(list_cv_content)
     processResume(list_cv_content)
     
     # calculate the matching score of cvs
     result = calcSimilar(jd, len(list_cv_content))
-    
+
     # save the result to database
     for ja in jas:
-        ja.matching_rate = result[ja.id]
+        ja.matching_rate = result[str(ja.id)]
     db.session.commit()
     
     # return json.dumps(result)
@@ -161,7 +162,7 @@ def connectDB():
     elif request.method == 'GET':
         job_id = request.args.get('job_id')
         # jas = JobApplicationModel.query.all()
-        jas = JobApplicationModel.query.filter(JobApplicationModel.job_id ==job_id)
+        jas = JobApplicationModel.query.filter(JobApplicationModel.job_id == job_id)
         result = {}
         for ja in jas:
             result[ja.id] = ja.cv
