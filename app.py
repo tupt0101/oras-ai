@@ -119,8 +119,12 @@ def prc_cvs():
 def calc():
     
     # get job id and job description from request
-    job_id = request.form['job_id']
-    jd = request.form['jd']
+    # job_id = request.form['job_id']
+    # jd = request.form['jd']
+    
+    data = request.get_json()
+    job_id = data['job_id']
+    jd = data['jd']
     
     # get list of job applications from database
     jas = JobApplicationModel.query.filter(JobApplicationModel.job_id == job_id)
