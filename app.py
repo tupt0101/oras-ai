@@ -98,7 +98,9 @@ def extract_docx():
 # process the raw job description: lemma, remove stop words, punctuation
 @app.route("/process/jd")
 def prc_jd():
-    raw_jd = request.form['jd']
+    print(request.headers)
+    data = request.get_json()
+    raw_jd = data['jd']
     result = processJD(raw_jd)
     return json.dumps({"prc_jd": result})
 
