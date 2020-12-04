@@ -8,6 +8,8 @@ model = w2v.load('./model/stackexchange_model_v2')
 
 def calcSimilar(job_description, no_of_cv):
     
+    print('>> Calculate similarity')
+
     cvs = pd.read_csv('./data/prc_cvs.csv', sep='\t')
     cvs = cvs.set_index('Unnamed: 0')
     
@@ -22,7 +24,7 @@ def calcSimilar(job_description, no_of_cv):
             total_word_value += word_value[similar_words[i]]
             print(similar_words[i], word_value[similar_words[i]])
     
-    print(">>", total_word_value)
+    print(">> ", total_word_value)
     print(">> ", total_word_value / math.log(no_of_cv))
     # no_of_cv = 1
 
@@ -45,7 +47,7 @@ def calcSimilar(job_description, no_of_cv):
         score[i] = 0
         try:
             for word in word_value.keys():
-                tf = cvs.loc(0)['skill'][i].split().count(word) + cvs.loc(0)['exp'][i].split().count(word)
+                tf = cvs.loc(0)['skill'][i].split().count(word) + cvs.loc(0)['exp'][i].split().count(word) + cvs.loc(0)['extra'][i].split().count(word)
                 score[i] += round(word_value[word]*tf*idf[word])
         except:
             pass

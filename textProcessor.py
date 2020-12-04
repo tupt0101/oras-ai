@@ -9,25 +9,30 @@ re_c = re.compile(r'\w+')
 
 def processJD(raw_jd):
     
-    # lemmatization
-    lem_str = ''
-    doc = nlp(raw_jd)
-    for token in doc:
-        lem_str += token.lemma_ + ' '
-        
-    list_of_words = re_c.findall(lem_str)
+    # clean text
+    list_of_words = re_c.findall(raw_jd)
     list_of_imp_words  = []
     
-    # modify word
+    # remove stop word
     for i in range(len(list_of_words)):
         modified_word = modify(list_of_words[i])
         if (modified_word):
             list_of_imp_words.append(modified_word)
 
-    return ' '.join(list_of_imp_words)
+    modified_doc = ' '.join(list_of_imp_words)
+    doc = nlp(modified_doc)
+    
+    result = ''
+    # lemma string
+    for token in doc:
+        result += token.lemma_ + ' '
+    print('>> processed jd: ', result)
+    
+    return result
 
 def processResume(list_cv_content):
     
+    print('>> Process resumes')
     # define flag variable
     flag_print = True
     threshold = 0.5
@@ -71,7 +76,6 @@ def processResume(list_cv_content):
         previous_section  = 'extra'
 
         current_data_series = pd.Series([""]*len(list_of_sections), index=list_of_sections)
-        
 
         for line in list_cv_content.get(id):
             # skip line if empty
