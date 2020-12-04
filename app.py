@@ -96,9 +96,9 @@ def extract_docx():
     return json.dumps(result)
 
 # process the raw job description: lemma, remove stop words, punctuation
-@app.route("/process/jd")
+@app.route("/process/jd", methods = ['POST'])
 def prc_jd():
-    print(request.headers)
+
     data = request.get_json()
     raw_jd = data['jd']
     result = processJD(raw_jd)
@@ -117,7 +117,7 @@ def prc_cvs():
     return json.dumps({'message': 'success'})
 
 # calculate the similarity between cvs and job description
-@app.route("/calc/similarity")
+@app.route("/calc/similarity", methods = ['POST'])
 def calc():
     
     # get job id and job description from request
@@ -152,7 +152,7 @@ def calc():
     db.session.commit()
     
     # return json.dumps(result)
-    return {"message": "{len(result)} job applications have been ranked!"}
+    return {"message": f"{len(result)} job applications have been ranked!"}
 
 # test zone
 @app.route("/test/connect-db", methods = ['GET', 'POST'])
