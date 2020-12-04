@@ -20,7 +20,7 @@ def calcSimilar(job_description, no_of_cv):
         for i in range(len(similar_words)):
             word_value[similar_words[i]] = word_value.get(similar_words[i], 0)+similarity[i]
             total_word_value += word_value[similar_words[i]]
-            # print(similar_words[i], word_value[similar_words[i]])
+            print(similar_words[i], word_value[similar_words[i]])
     
     print(">>", total_word_value)
     print(">> ", total_word_value / math.log(no_of_cv))
@@ -46,7 +46,7 @@ def calcSimilar(job_description, no_of_cv):
         try:
             for word in word_value.keys():
                 tf = cvs.loc(0)['skill'][i].split().count(word) + cvs.loc(0)['exp'][i].split().count(word)
-                score[i] += word_value[word]*tf*idf[word]
+                score[i] += round(word_value[word]*tf*idf[word])
         except:
             pass
     

@@ -135,16 +135,17 @@ def calc():
     list_cv_content = {}
     for ja in jas:
         tokens = ja.cv.split('.')
-        print(ja.cv)
+        # print(ja.cv)
         if (tokens[-1] == 'pdf'):
             list_cv_content[ja.id] = extractTextFromPDF(ja.cv)
         elif (tokens[-1] == 'docx'):
             list_cv_content[ja.id] = extractTextFromDocx(ja.cv)
-    print(list_cv_content)
+    # print(list_cv_content)
     processResume(list_cv_content)
     
     # calculate the matching score of cvs
     result = calcSimilar(jd, len(list_cv_content))
+    print('>> Result: ', result)
 
     # save the result to database
     for ja in jas:

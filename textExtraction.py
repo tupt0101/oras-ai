@@ -5,6 +5,7 @@ from PyPDF2 import PdfFileReader
 from docx import Document
 
 def extractTextFromPDF(url):
+    print('>> Extract cv: ', url)
     r = requests.get(url)
     f = io.BytesIO(r.content)
     
@@ -18,6 +19,7 @@ def extractTextFromPDF(url):
     return re.split(r'\s{2,}', result)
 
 def extractTextFromDocx(url):
+    print('>> Extract cv: ', url)
     r = requests.get(url)
     f = io.BytesIO(r.content)
     document = Document(f)
