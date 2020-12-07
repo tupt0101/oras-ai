@@ -14,7 +14,7 @@ def calcSimilar(job_description, no_of_cv):
     cvs = cvs.set_index('Unnamed: 0')
     
     word_value = {}
-    similar_words_needed = 2
+    similar_words_needed = 5
     total_word_value = 0
     for word in job_description.split():
         # get similar word
@@ -22,10 +22,10 @@ def calcSimilar(job_description, no_of_cv):
         for i in range(len(similar_words)):
             word_value[similar_words[i]] = word_value.get(similar_words[i], 0)+similarity[i]
             total_word_value += word_value[similar_words[i]]
-            print(similar_words[i], word_value[similar_words[i]])
+            # print(similar_words[i], word_value[similar_words[i]])
     
     print(">> ", total_word_value)
-    print(">> ", total_word_value / math.log(no_of_cv))
+    print(">> ", len(job_description.split()))
     # no_of_cv = 1
 
     count = {}
@@ -34,9 +34,11 @@ def calcSimilar(job_description, no_of_cv):
         count[word] = 0
         for i in range(no_of_cv):
             try:
-                if word in cvs.loc(0)['skill'][i].split() or word in cvs.loc(0)['exp'][i].split():
+                if word in str(cvs.loc(0)['edu'][i]).split() or word in str(cvs.loc(0)['skill'][i]).split() or word in str(cvs.loc(0)['exp'][i]).split() or word in str(cvs.loc(0)['extra'][i]).split():
                     count[word] += 1
-            except:
+            except Exception as e:
+                print('>> error at cv ', i)
+                print(e)
                 pass
         if (count[word] == 0):
             count[word] = 1
@@ -45,16 +47,27 @@ def calcSimilar(job_description, no_of_cv):
     score = {}
     for i in range(no_of_cv):
         score[i] = 0
+        tmp_score = 0
         try:
             for word in word_value.keys():
-                tf = cvs.loc(0)['skill'][i].split().count(word) + cvs.loc(0)['exp'][i].split().count(word) + cvs.loc(0)['extra'][i].split().count(word)
-                score[i] += round(word_value[word]*tf*idf[word])
-        except:
+                tf = str(cvs.loc(0)['edu'][i]).split().count(word) + str(cvs.loc(0)['skill'][i]).split().count(word) + str(cvs.loc(0)['exp'][i]).split().count(word) + str(cvs.loc(0)['extra'][i]).split().count(word)
+                tmp_score += word_value[word]*tf*idf[word]
+                
+                # convert score to percentage
+                tmp = tmp_score/(total_word_value/(similar_words_needed + 1))*100
+                if (tmp > 100):
+                    score[i] = 100
+                else:
+                    score[i] = tmp
+        except Exception as e:
+            print('>> error at cv ', i)
+            print(e)
             pass
     
     sorted_list = []
     for i in range(no_of_cv):
-        sorted_list.append((score[i], i))
+        # sorted_list.append((round(score[i]), i))
+        sorted_list.append((round(score[i]), i))
         
     sorted_list.sort(reverse=True)
 

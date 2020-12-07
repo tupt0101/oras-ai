@@ -60,7 +60,7 @@ class JobApplicationModel(BaseModel, db.Model):
     matching_rate = db.Column(db.Float())
     source = db.Column(db.String())
     status = db.Column(db.String())
-    talent_pool_id = db.Column(db.Integer())
+    hired_date = db.Column(db.DateTime())
 
 # home page
 @app.route("/")
