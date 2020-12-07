@@ -16,6 +16,7 @@ def calcSimilar(job_description, no_of_cv):
     word_value = {}
     similar_words_needed = 5
     total_word_value = 0
+    jd_value = 0
     for word in job_description.split():
         # get similar word
         similar_words, similarity = get_closest(word, similar_words_needed)
@@ -43,6 +44,9 @@ def calcSimilar(job_description, no_of_cv):
         if (count[word] == 0):
             count[word] = 1
         idf[word] = math.log(no_of_cv/count[word])
+        jd_value += word_value[word]*idf[word]
+    #
+    print('>> jd_value: ', jd_value)
     
     score = {}
     for i in range(no_of_cv):
@@ -52,13 +56,15 @@ def calcSimilar(job_description, no_of_cv):
             for word in word_value.keys():
                 tf = str(cvs.loc(0)['edu'][i]).split().count(word) + str(cvs.loc(0)['skill'][i]).split().count(word) + str(cvs.loc(0)['exp'][i]).split().count(word) + str(cvs.loc(0)['extra'][i]).split().count(word)
                 tmp_score += word_value[word]*tf*idf[word]
-                
-                # convert score to percentage
-                tmp = tmp_score/(total_word_value/(similar_words_needed + 1))*100
-                if (tmp > 100):
-                    score[i] = 100
-                else:
-                    score[i] = tmp
+            #
+            print('>> score of cv ', i, ': ', tmp_score)
+
+            # convert score to percentage
+            tmp = tmp_score/(jd_value/(similar_words_needed + 1))*100
+            if (tmp > 100):
+                score[i] = 100
+            else:
+                score[i] = tmp
         except Exception as e:
             print('>> error at cv ', i)
             print(e)
