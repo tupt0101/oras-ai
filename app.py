@@ -62,6 +62,31 @@ class JobApplicationModel(BaseModel, db.Model):
     status = db.Column(db.String())
     hired_date = db.Column(db.DateTime())
 
+# Model for job table
+class JobModel(BaseModel, db.Model):
+    __tablename__ = 'job'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    apply_to = db.Column(db.DateTime())
+    create_date = db.Column(db.DateTime())
+    creator_id = db.Column(db.Integer())
+    currency = db.Column(db.String())
+    description = db.Column(db.String())
+    salary_from = db.Column(db.Float())
+    salary_hidden = db.Column(db.Boolean)
+    salary_to = db.Column(db.Float())
+    status = db.Column(db.String())
+    title = db.Column(db.String())
+    vacancies = db.Column(db.Integer())
+    job_type = db.Column(db.String())
+    apply_from = db.Column(db.DateTime())
+    openjob_job_id = db.Column(db.Integer())
+    category = db.Column(db.String())
+    processed_jd = db.Column(db.String())
+    total_application = db.Column(db.Integer())
+    expire_date = db.Column(db.DateTime())
+    processed_jd = db.Column(db.String())
+
 # home page
 @app.route("/")
 def main():
@@ -119,20 +144,24 @@ def prc_cvs():
 # calculate the similarity between cvs and job description
 @app.route("/calc/similarity", methods = ['POST'])
 def calc():
-    
     # get job id and job description from request
     # job_id = request.form['job_id']
     # jd = request.form['jd']
     
     data = request.get_json()
     job_id = data['job_id']
-    jd = data['jd']
+    # jd = data['jd']
     
     # get list of job applications from database
     jas = JobApplicationModel.query.filter(JobApplicationModel.job_id == job_id)
-    
+    prcjd = JobModel.query.filter(JobModel.id == job_id).first()
+    if prcjd.processed_jd == None:
+        prcjd.processed_jd = processJD(prcjd.description)
+        db.session.commit()
+    jd = prcjd.processed_jd
     # extract cv content from url
     list_cv_content = {}
+    print('start: ', datetime.datetime.now())
     for ja in jas:
         tokens = ja.cv.split('.')
         # print(ja.cv)
@@ -140,6 +169,7 @@ def calc():
             list_cv_content[ja.id] = extractTextFromPDF(ja.cv)
         elif (tokens[-1] == 'docx'):
             list_cv_content[ja.id] = extractTextFromDocx(ja.cv)
+    print('end extract: ', datetime.datetime.now())
     # print(list_cv_content)
     processResume(list_cv_content)
     
@@ -151,6 +181,7 @@ def calc():
     for ja in jas:
         ja.matching_rate = result[str(ja.id)]
     db.session.commit()
+    print(job_id, 'end: ', datetime.datetime.now())
     
     # return json.dumps(result)
     return {"message": f"{len(result)} job applications have been ranked!"}

@@ -2,6 +2,7 @@ import math
 from flask.helpers import total_seconds
 import pandas as pd
 from gensim.models import Word2Vec as w2v
+import json, datetime
 
 # load model to process
 model = w2v.load('./model/stackexchange_model_v2')
@@ -82,6 +83,7 @@ def calcSimilar(job_description, no_of_cv):
         if list(cvs)[i] != '.DS_Store':
             result[list(cvs)[i]] = s
     
+    print(list(cvs)[0],'end cacl: ', datetime.datetime.now())
     return result
 
 def get_closest(word, n):
