@@ -11,10 +11,14 @@ from textCalculator import calcSimilar
 
 # database connection configuration
 POSTGRES = {
-    'user': 'ornphnuodjuqxc',
-    'pw': '027924e9378c409d321d057aaeab4b257031508694d3fc0ce6cad8fddc3d57b0',
-    'db': 'db67ot35cl90oe',
-    'host': 'ec2-54-84-98-18.compute-1.amazonaws.com',
+    # 'user': 'ornphnuodjuqxc',
+    # 'pw': '027924e9378c409d321d057aaeab4b257031508694d3fc0ce6cad8fddc3d57b0',
+    # 'db': 'db67ot35cl90oe',
+    # 'host': 'ec2-54-84-98-18.compute-1.amazonaws.com',
+    'user': 'postgres',
+    'pw': '123456',
+    'db': 'oras',
+    'host': '127.0.0.1',
     'port': '5432'
 }
 
